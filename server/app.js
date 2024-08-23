@@ -5,6 +5,11 @@ const PORT = 5005;
 const mongoose = require("mongoose");
 const students = require("./models/Student.model");
 const cohorts = require("./models/Cohort.model");
+const User = require("./models/User.model");
+require("dotenv").config();
+const isAuthenticated = require("./middleware/jwt");
+const authRoutes = require("./Routes/auth.routes");
+const protectedRoutes = require("./Routes/protected.routes");
 const cors = require("cors");
 const { errorHandler, notFoundHandler } = require("./error-handling");
 
@@ -318,6 +323,20 @@ app.delete("/api/cohorts/:cohortId", (req, res, next) => {
     });
 });
 
+app.get("/api/users/:id", isAuthenticated, (req, res, next) => {
+  const { id } = req.params;
+  User.findById(id)
+    .then((User) => {
+      res.status(200).json(User);
+    })
+    .catch((error) => {
+      console.log("Error getting cohort:", error);
+      next(error);
+    });
+});
+
+app.use("/auth", authRoutes);
+app.use("/protected", isAuthenticated, protectedRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
